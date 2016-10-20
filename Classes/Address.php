@@ -8,6 +8,11 @@
  */
 class Address
 {
+    static public $validAddressTypes = [
+        1 => 'Home',
+        2 => 'Work',
+        3 => 'Park'
+    ];
     public $streetAddress1;
     public $streetAddress2;
 

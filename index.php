@@ -31,3 +31,10 @@ echo '<tt><pre>' .var_export($address_park2, TRUE) . '</tt></pre>';
 
 echo '<h2>Copying AddressBussiness reference</h2>';
 $address_business_copy = $address_business;
+
+echo '<h2>Testing to an object</h2>';
+$test_object = (object) array(
+    'hello' => 'world',
+    'nested' => array('key' => 'value'),
+);
+echo '<tt><pre>' .var_export($test_object, TRUE) . '</tt></pre>';

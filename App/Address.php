@@ -1,22 +1,24 @@
 <?php
-
-/*namespace Project\Classes;*/
+namespace App;
 
 /**
  * Class Address
  * @package Project\Classes
  */
-class Address
+abstract class Address implements Model
 {
+    const ADDRESS_HOME = 1;
+    const ADDRESS_WORK = 2;
+    const ADDRESS_PARK = 3;
     static public $validAddressTypes = [
-        1 => 'Home',
-        2 => 'Work',
-        3 => 'Park'
+        self::ADDRESS_HOME => 'Home',
+        self::ADDRESS_WORK => 'Work',
+        self::ADDRESS_PARK => 'Park'
     ];
     public $streetAddress1;
     public $streetAddress2;
 
-    public $cityName;
+    public $cityName = 'Hamlet';
 
     public $regionName;
 
@@ -26,9 +28,17 @@ class Address
     protected $timeCreated;
     protected $timeUpdated;
     protected $_postal_code;
+    protected $addressTypeId;
+
+    function __clone()
+    {
+        $this->timeCreated = time();
+        $this->timeUpdated = NULL;
+    }
 
     function __construct($data = array())
     {
+        $this->_init();
         $this->timeCreated = time();
         if (!is_array($data)){
             trigger_error('Unable to construct address with a ' . get_class($name));
@@ -68,6 +78,10 @@ class Address
      * @param mixed $value
      */
     function __set($name, $value) {
+/*        if ('addressTypeId' == $name){
+            $this->setAddressTypeId($value);
+            return;
+        }*/
         // Allow anything to set the postal code.
         if ('postal_code' == $name) {
             $this->$name = $value;
@@ -83,13 +97,23 @@ class Address
         return $this->display();
     }
 
+    abstract protected function _init();
+
     /**
      * Guess the postal code given the subdivision and city name.
      * @todo Replace with a database lookup.
      * @return string
      */
     protected function _postal_code_guess() {
-        return 'Postal code undefined';
+        $db = Db::getInstance();
+        $mysqli = $db->getConnection();
+        $city_name = $this->cityName;
+        $sql = 'SELECT postal_code FROM location WHERE city_name = "'.$city_name .'" ';
+
+        $res = $mysqli->query($sql);
+        if ($row = $res->fetch_assoc()){
+            return $row['postal_code'];
+        }
     }
     public function display(){
         $output = "";
@@ -102,5 +126,22 @@ class Address
         $output .=  ' ' . $this->postal_code;
         $output .=  '<br>' . $this->countryName;
         return $output;
+    }
+
+    static public function isValidAddress($addressId){
+        return array_key_exists($addressId, self::$validAddressTypes);
+    }
+
+    protected function setAddressTypeId($addressTypeId){
+        if(self::isValidAddress($addressTypeId)){
+            $this->addressTypeId = $addressTypeId;
+        }
+    }
+    final public static function load($address_id){
+
+    }
+    final public function save()
+    {
+        // TODO: Implement save() method.
     }
 }
